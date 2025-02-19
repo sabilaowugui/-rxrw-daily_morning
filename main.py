@@ -17,29 +17,53 @@ app_secret = os.environ["APP_SECRET"]
 user_id = os.environ["USER_ID"]
 template_id = os.environ["TEMPLATE_ID"]
 
-UID = "1141121670";
-KEY = "S6qE0xJR1cW69c-gy";
+UID = os.environ["UID"]
+KEY = os.environ["KEY"]
 API = "http://api.seniverse.com/v3/weather/now.json";
-LOCATION = "长春";
 
- #获取当前时间戳
-ts = today;
-  #构造验证参数字符串
-str = "ts=" + ts + "&uid=" + UID;
 
-  #使用 HMAC-SHA1 方式，以 API 密钥（key）对上一步生成的参数字符串（raw）进行加密
-  #并将加密结果用 base64 编码，并做一个 urlencode，得到签名 sig
-sig = CryptoJS.HmacSHA1(str, KEY).toString(CryptoJS.enc.Base64);
-sig = encodeURIComponent(sig);
-str = str + "&sig=" + sig;
-
- #构造最终请求的 url
-url = API + "?location=" + LOCATION + "&" + str + "&callback=foo";
+def generate_weather_url():
+    """生成带签名的天气API请求URL"""
+    ts = str(int(today.timestamp()))
+    params = {
+        "ts": ts,
+        "uid": UID,
+        "location": city,
+        "ttl": 300
+    }
+    
+    # 按参数名排序生成签名字符串
+    sorted_params = sorted(params.items(), key=lambda x: x[0])
+    query_string = "&".join([f"{k}={v}" for k, v in sorted_params])
+    
+    # 生成签名
+    signature = hmac.new(
+        KEY.encode("utf-8"),
+        query_string.encode("utf-8"),
+        hashlib.sha1
+    ).digest()
+    signature = base64.b64encode(signature).decode()
+    params["sig"] = signature
+    
+    return f"{API}?{'&'.join([f'{k}={v}' for k, v in params.items()])}"
 
 def get_weather():
-  res = requests.get(url).json()
-  weather = res['data']['list'][0]
-  return weather['weather'], math.floor(weather['temp'])
+    """获取天气数据"""
+    try:
+        url = generate_weather_url()
+        response = requests.get(url, timeout=10)
+        response.raise_for_status()
+        data = response.json()
+        weather_info = data["results"][0]["now"]
+        return weather_info["weather"], int(weather_info["temp"])
+    except Exception as e:
+        print(f"Weather API Error: {str(e)}")
+        return "未知", 0
+
+#def get_weather():
+#  res = requests.get(url).json()
+# weather = res['data']['list'][0]
+# return weather['weather'], math.floor(weather['temp'])
 
 def get_count():
   delta = today - datetime.strptime(start_date, "%Y-%m-%d")
