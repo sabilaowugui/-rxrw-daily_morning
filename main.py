@@ -23,7 +23,7 @@ API = "http://api.seniverse.com/v3/weather/now.json";
 LOCATION = "长春";
 
  #获取当前时间戳
-ts = math.floor((new Date()).getTime() / 1000);
+ts = today;
   #构造验证参数字符串
 str = "ts=" + ts + "&uid=" + UID;
 
