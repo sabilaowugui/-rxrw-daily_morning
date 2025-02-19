@@ -31,7 +31,7 @@ str = "ts=" + ts + "&uid=" + UID;
   #并将加密结果用 base64 编码，并做一个 urlencode，得到签名 sig
 sig = CryptoJS.HmacSHA1(str, KEY).toString(CryptoJS.enc.Base64);
 sig = encodeURIComponent(sig);
- str = str + "&sig=" + sig;
+str = str + "&sig=" + sig;
 
  #构造最终请求的 url
 url = API + "?location=" + LOCATION + "&" + str + "&callback=foo";
