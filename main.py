@@ -55,7 +55,7 @@ def get_weather():
         response.raise_for_status()
         data = response.json()
         weather_info = data["results"][0]["now"]
-        return weather_info["weather"], int(weather_info["temp"])
+        return weather_info["text"], int(weather_info["tempature"])
     except Exception as e:
         print(f"Weather API Error: {str(e)}")
         return "未知", 0
@@ -86,9 +86,9 @@ def get_random_color():
 
 
 client = WeChatClient(app_id, app_secret)
-
+wea, temp = get_weather()
 wm = WeChatMessage(client)
-wea, temperature = get_weather()
-data = {"weather":{"value":weather_info},"temperature":{"value":temperature},"love_days":{"value":get_count()},"birthday_left":{"value":get_birthday()},"words":{"value":get_words(), "color":get_random_color()}}
+wea, temp = get_weather()
+data = {"weather":{"value":wea},"temperature":{"value":temp},"love_days":{"value":get_count()},"birthday_left":{"value":get_birthday()},"words":{"value":get_words(), "color":get_random_color()}}
 res = wm.send_template(user_id, template_id, data)
 print(res)
